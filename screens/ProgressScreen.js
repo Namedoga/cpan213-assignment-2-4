@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Button, ActivityIndicator, StyleSheet, Image } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
 export default function ProgressScreen() {
   const [loading, setLoading] = useState(false);
@@ -15,7 +15,10 @@ export default function ProgressScreen() {
 
   return (
     <View style={styles.container}>
-      <Button title="Fetch Pokémon" onPress={fetchAPI} />
+    
+      <TouchableOpacity style={styles.customBtn} onPress={fetchAPI}>
+        <Text style={styles.customBtnTxt}>Fetch Pokémon</Text>
+      </TouchableOpacity>
 
       {loading && <ActivityIndicator size="large" style={{ marginTop: 20 }} />}
 
@@ -36,6 +39,8 @@ export default function ProgressScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center" },
+  customBtn: { backgroundColor: "#ffcc00", paddingVertical: 15, paddingHorizontal: 30, borderRadius: 30, elevation: 3 },
+  customBtnTxt: { fontSize: 18, fontWeight: "bold", color: "#333" },
   card: { marginTop: 20, alignItems: "center" },
   name: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
   info: { fontSize: 16, marginTop: 5 }
