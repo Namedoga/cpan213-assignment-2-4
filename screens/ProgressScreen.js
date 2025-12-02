@@ -43,6 +43,8 @@ export default function ProgressScreen() {
   };
 
   const fetchAPI = async () => {
+    const MIN_DURATION = 1500;
+    const startTime = Date.now();
     try {
       setShowModal(false);
       setLoading(true);
@@ -52,6 +54,13 @@ export default function ProgressScreen() {
       const response = await fetch("https://pokeapi.co/api/v2/pokemon/pikachu");
       const json = await response.json();
       setPokemon(json);
+
+      const elapsed = Date.now() - startTime;
+      const remaining = MIN_DURATION - elapsed;
+      if (remaining > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+      }
+
     } catch (err) {
       console.log("Error fetching pokemon:", err);
     } finally {
