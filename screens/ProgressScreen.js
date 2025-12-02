@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
-  ActivityIndicator,
   StyleSheet,
   Image,
   TouchableOpacity,
@@ -15,9 +14,9 @@ export default function ProgressScreen() {
   const [pokemon, setPokemon] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
+  const progress = useRef(new Animated.Value(0)).current;
 
   const runButtonAnimation = () => {
     Animated.sequence([
@@ -34,11 +33,21 @@ export default function ProgressScreen() {
     ]).start();
   };
 
+  const startProgress = () => {
+    progress.setValue(0);
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: 2000,
+      useNativeDriver: false,
+    }).start();
+  };
+
   const fetchAPI = async () => {
     try {
       setShowModal(false);
       setLoading(true);
       runButtonAnimation();
+      startProgress();
 
       const response = await fetch("https://pokeapi.co/api/v2/pokemon/pikachu");
       const json = await response.json();
@@ -47,6 +56,7 @@ export default function ProgressScreen() {
       console.log("Error fetching pokemon:", err);
     } finally {
       setLoading(false);
+      progress.setValue(0);
     }
   };
 
@@ -54,7 +64,6 @@ export default function ProgressScreen() {
     setShowModal(true);
   };
 
- 
   useEffect(() => {
     if (pokemon) {
       cardOpacity.setValue(0);
@@ -65,6 +74,11 @@ export default function ProgressScreen() {
       }).start();
     }
   }, [pokemon, cardOpacity]);
+
+  const progressWidth = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0%", "100%"],
+  });
 
   return (
     <View style={styles.container}>
@@ -82,17 +96,19 @@ export default function ProgressScreen() {
           disabled={loading}
         >
           <Text style={styles.customBtnTxt}>
-  {loading
-    ? "Loading..."
-    : pokemon
-    ? ` ${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)} Fetched`
-    : "Fetch"}
-</Text>
+            {loading
+              ? "Loading..."
+              : pokemon
+              ? `${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)} Fetched`
+              : "Fetch"}
+          </Text>
         </TouchableOpacity>
       </Animated.View>
 
       {loading && (
-        <ActivityIndicator size="large" style={{ marginTop: 20 }} />
+        <View style={styles.progressContainer}>
+          <Animated.View style={[styles.progressBar, { width: progressWidth }]} />
+        </View>
       )}
 
       {pokemon && (
@@ -110,36 +126,32 @@ export default function ProgressScreen() {
           </Text>
         </Animated.View>
       )}
-      
+
       <Modal
         transparent
         visible={showModal}
         animationType="fade"
         onRequestClose={() => setShowModal(false)}
-        >
-          <View style = {styles.modalOverlay}>
-            <View style={styles.modalBox}>
-              <Text style={styles.modalText}>Fetch Pikachu?</Text>
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>Fetch Pikachu?</Text>
 
-              <View style={styles.modalbuttons}>
-                <TouchableOpacity
+            <View style={styles.modalbuttons}>
+              <TouchableOpacity
                 style={styles.modalBtn}
                 onPress={() => setShowModal(false)}
-                >
-                  <Text style={styles.modalBtnTxt}>Cancel</Text>
-                </TouchableOpacity>
+              >
+                <Text style={styles.modalBtnTxt}>Cancel</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                style={styles.modalBtn}
-                onPress={fetchAPI}
-                >
-                  <Text style={styles.modalBtnTxt}>Yes!</Text>
-                </TouchableOpacity>
-                </View>
+              <TouchableOpacity style={styles.modalBtn} onPress={fetchAPI}>
+                <Text style={styles.modalBtnTxt}>Yes!</Text>
+              </TouchableOpacity>
             </View>
           </View>
+        </View>
       </Modal>
-
     </View>
   );
 }
@@ -166,12 +178,24 @@ const styles = StyleSheet.create({
   name: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
   info: { fontSize: 16, marginTop: 5 },
 
+  progressContainer: {
+    marginTop: 20,
+    width: "80%",
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#ddd",
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#4caf50",
+  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "black",
     justifyContent: "center",
     alignItems: "center",
-
   },
 
   modalBox: {
@@ -182,7 +206,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  modalText: { 
+  modalText: {
     fontSize: 18,
     marginBottom: 20,
     textAlign: "center",
@@ -191,14 +215,14 @@ const styles = StyleSheet.create({
   modalbuttons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%"
+    width: "100%",
   },
   modalBtn: {
     padding: 10,
     flex: 1,
-    alignItems: "center"
+    alignItems: "center",
   },
   modalBtnTxt: {
-    fontSize: 16 
-  }
+    fontSize: 16,
+  },
 });
