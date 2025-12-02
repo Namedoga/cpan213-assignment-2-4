@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Modal, } from "react-native";
 
 const STARTERS = [
   { id: "bulbasaur", apiName: "bulbasaur" },
@@ -12,6 +12,8 @@ export default function SettingsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingSelection, setPendingSelection] = useState(null);
 
   useEffect(() => {
     const fetchStarters = async () => {
@@ -51,6 +53,17 @@ export default function SettingsScreen() {
       ? selectedData.name.charAt(0).toUpperCase() + selectedData.name.slice(1)
       : null;
 
+    const handleStarterPress = (starterId) => {
+      setPendingSelection(starterId);
+      setShowConfirmModal(true);
+    };
+
+    const confirmSelection = () => {
+      setSelectedId(pendingSelection);
+      setShowConfirmModal(false);
+      setPendingSelection(null);
+    };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Choose your starter Pokémon</Text>
@@ -88,7 +101,7 @@ export default function SettingsScreen() {
                     styles.starterCard,
                     isSelected && styles.starterCardSelected,
                   ]}
-                  onPress={() => setSelectedId(starter.id)}
+                  onPress={() => handleStarterPress(starter.id)}
                 >
                   {imageUri && (
                     <Image
@@ -104,10 +117,12 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.messageContainer}>
-            {selectedName ? (
+            {selectedId ? (
               <Text style={styles.message}>
                 You have picked{" "}
-                <Text style={styles.highlight}>{selectedName}</Text> as your
+                <Text style={styles.highlight}>
+                {startersData[selectedId]?.name ? startersData[selectedId].name.charAt(0).toUpperCase() + startersData[selectedId].name.slice(1) : "" }
+                </Text> as your
                 starter pokemon.
               </Text>
             ) : (
@@ -118,6 +133,42 @@ export default function SettingsScreen() {
           </View>
         </>
       )}
+
+      <Modal
+      transparent
+      visible={showConfirmModal}
+      animationType="fade"
+      onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>
+              Do you want to pick{" "}
+              {pendingSelection
+                ? startersData[pendingSelection].name.charAt(0).toUpperCase() +
+                  startersData[pendingSelection].name.slice(1)
+                : ""}
+              ? 
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={() => setShowConfirmModal(false)}
+              >
+                <Text style={styles.modalBtnTxt}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={confirmSelection}
+              >
+                <Text style={styles.modalBtnTxt}>Yes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -181,4 +232,40 @@ const styles = StyleSheet.create({
   highlight: {
     fontWeight: "bold",
   },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+
+  },
+
+  modalBox: {
+    backgroundColor: "white",
+    padding: 24,
+    borderRadius: 12,
+    width: 280,
+    alignItems: "center",
+  },
+
+  modalText: { 
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+
+  modalbuttons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%"
+  },
+  modalBtn: {
+    padding: 10,
+    flex: 1,
+    alignItems: "center"
+  },
+  modalBtnTxt: {
+    fontSize: 16 
+  }
 });

@@ -7,11 +7,13 @@ import {
   Image,
   TouchableOpacity,
   Animated,
+  Modal,
 } from "react-native";
 
 export default function ProgressScreen() {
   const [loading, setLoading] = useState(false);
   const [pokemon, setPokemon] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -34,6 +36,7 @@ export default function ProgressScreen() {
 
   const fetchAPI = async () => {
     try {
+      setShowModal(false);
       setLoading(true);
       runButtonAnimation();
 
@@ -45,6 +48,10 @@ export default function ProgressScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openConfirmModal = () => {
+    setShowModal(true);
   };
 
  
@@ -71,7 +78,7 @@ export default function ProgressScreen() {
       >
         <TouchableOpacity
           style={styles.customBtn}
-          onPress={fetchAPI}
+          onPress={openConfirmModal}
           disabled={loading}
         >
           <Text style={styles.customBtnTxt}>
@@ -103,6 +110,36 @@ export default function ProgressScreen() {
           </Text>
         </Animated.View>
       )}
+      
+      <Modal
+        transparent
+        visible={showModal}
+        animationType="fade"
+        onRequestClose={() => setShowModal(false)}
+        >
+          <View style = {styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalText}>Fetch Pikachu?</Text>
+
+              <View style={styles.modalbuttons}>
+                <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={() => setShowModal(false)}
+                >
+                  <Text style={styles.modalBtnTxt}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={fetchAPI}
+                >
+                  <Text style={styles.modalBtnTxt}>Yes!</Text>
+                </TouchableOpacity>
+                </View>
+            </View>
+          </View>
+      </Modal>
+
     </View>
   );
 }
@@ -128,4 +165,40 @@ const styles = StyleSheet.create({
   image: { width: 120, height: 120, marginBottom: 12 },
   name: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
   info: { fontSize: 16, marginTop: 5 },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+
+  },
+
+  modalBox: {
+    backgroundColor: "white",
+    padding: 24,
+    borderRadius: 12,
+    width: 280,
+    alignItems: "center",
+  },
+
+  modalText: { 
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+
+  modalbuttons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%"
+  },
+  modalBtn: {
+    padding: 10,
+    flex: 1,
+    alignItems: "center"
+  },
+  modalBtnTxt: {
+    fontSize: 16 
+  }
 });
